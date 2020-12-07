@@ -1,0 +1,32 @@
+server:
+  port: 8085
+  servlet:
+    contextPath: /
+    session:
+      timeout: 180m
+spring:
+  datasource:
+    url: ""
+    username: "postgres"
+    password: "root"
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+#      ddl-auto: validate
+      use-new-id-generator-mappings: true
+    properties:
+      hibernate:
+        default_schema: public
+        format_sql: true
+        jdbc:
+          lob:
+            non_contextual_creation: true
+    show-sql: false
+  flyway:
+    locations: classpath:db/migration/postgresql
+    baselineOnMigrate: true
+    validate-on-migrate: false
+  output:
+    ansi:
+      enabled: always
+
