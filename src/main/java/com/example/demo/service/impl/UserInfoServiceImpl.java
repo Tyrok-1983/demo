@@ -51,7 +51,11 @@ public class UserInfoServiceImpl implements UserInfoService {
             return build;
         }
         BeanUtils.copyProperties(user, usersInfo);
-        repository.save(usersInfo);
+        try {
+            repository.save(usersInfo);
+        } catch (RuntimeException e) {
+            return build.toBuilder().description(e.getMessage()).build();
+        }
         return build.toBuilder().description("Пользователь успешно сохранен").build();
     }
 
@@ -60,17 +64,21 @@ public class UserInfoServiceImpl implements UserInfoService {
     public List<UsersInfoModel> findUserInfo(UsersInfoModel user) {
         List<UsersInfoModel> result = new ArrayList<>();
         final String phoneNumber = user.getPhoneNumber();
-        final List<UsersInfo> users = repository.findUsersInfo(user.getFirstName(), user.getMiddleName(),
-                user.getMiddleName(), phoneNumber != null ? normlalizePhoneNuber(user) : phoneNumber, user.getEmail());
-        for (UsersInfo usersInfo : users) {
-            final UsersInfoModel temp = new UsersInfoModel();
-            BeanUtils.copyProperties(usersInfo, temp);
-            result.add(temp);
+        try {
+            final List<UsersInfo> users = repository.findUsersInfo(user.getFirstName(), user.getMiddleName(),
+                    user.getMiddleName(), phoneNumber != null ? normalizePhoneNumber(user) : phoneNumber, user.getEmail());
+            for (UsersInfo usersInfo : users) {
+                final UsersInfoModel temp = new UsersInfoModel();
+                BeanUtils.copyProperties(usersInfo, temp);
+                result.add(temp);
+            }
+        } catch (RuntimeException e) {
+            log.error(e.getMessage());
         }
         return result;
     }
 
-    private String normlalizePhoneNuber(UsersInfoModel user) {
+    private String normalizePhoneNumber(UsersInfoModel user) {
         return user.getPhoneNumber().replaceAll("[+ ()-]", "");
     }
 
@@ -95,7 +103,7 @@ public class UserInfoServiceImpl implements UserInfoService {
                         user.getBirthDate(), user.getPasNumber())) {
                     builder.error(true)
                             .description("Для профили bank поля BankId, LastName, FirstName, MiddleName, BirthDate, PasNumber обязательны");
-                }else {
+                } else {
                     validatePassNumber(user, builder);
                 }
 
@@ -129,7 +137,7 @@ public class UserInfoServiceImpl implements UserInfoService {
                         .description("Паспорта и серия не соответствую требуемой длине 10 цифр");
             }
             final ResponseUser build = builder.build();
-            if (!build.isError()){
+            if (!build.isError()) {
                 user.setPasNumber(pasNumber.substring(0, 3) + " " + pasNumber.substring(3, 10));
             }
         }
@@ -137,7 +145,7 @@ public class UserInfoServiceImpl implements UserInfoService {
 
     private void validationPhoneNumber(UsersInfoModel user, ResponseUser.ResponseUserBuilder builder) {
         if (user.getPhoneNumber() != null) {
-            final String normalizeNumber =  normlalizePhoneNuber(user);
+            final String normalizeNumber = normalizePhoneNumber(user);
             if (normalizeNumber.indexOf("7") != 0) {
                 builder.error(true)
                         .description("В номере телефона первой цифрой должны быть 7");

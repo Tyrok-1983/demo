@@ -26,23 +26,26 @@ public class UserController {
 
     @GetMapping("/{id}")
     public UsersInfoModel findUserById(@PathVariable Long id) {
+        log.info("Input id = {}", id);
         return service.findUserById(id);
     }
 
     @PutMapping("/create")
     public ResponseUser createUser(@RequestBody UsersInfoModel user,
                                    @RequestHeader(name = "x-Source") String source) {
+        log.info("Input object UsersInfoModel = {}", user);
         if (user == null) {
-            log.info("Пользователь для сахранения не может быть null");
+            log.info("Пользователь для сохранения не может быть null");
             return ResponseUser.builder()
                     .error(true)
-                    .description("Пользователь для сахранения не может быть null").build();
+                    .description("Пользователь для сохранения не может быть null").build();
         }
         return service.createUser(user, source);
     }
 
     @PostMapping()
-    public List<UsersInfoModel> findUser(@RequestBody UsersInfoModel user){
+    public List<UsersInfoModel> findUser(@RequestBody UsersInfoModel user) {
+        log.info("Input object for find UsersInfoModel = {}", user);
         return service.findUserInfo(user);
     }
 }
